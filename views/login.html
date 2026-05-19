@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>313 // AUTH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000; color: #fff; font-family: 'JetBrains Mono', monospace; }
+        .input-noir { background: #000; border: 1px solid #27272a; color: #fff; transition: all 0.3s; }
+        .input-noir:focus { border-color: #fff; outline: none; box-shadow: 0 0 10px rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-sm p-10 border border-zinc-900 bg-zinc-950/50 backdrop-blur-md rounded-sm">
+        <div class="flex flex-col items-center mb-10">
+            <i data-lucide="shield-check" class="w-10 h-10 mb-4"></i>
+            <h2 class="text-xs tracking-[0.4em] uppercase text-zinc-500">Master Session</h2>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-[10px] uppercase text-zinc-600 mb-2">Access Key</label>
+                <input type="password" id="password" required class="w-full input-noir p-4 text-xs" placeholder="••••••••">
+            </div>
+            <button type="submit" class="w-full bg-white text-black font-bold py-4 text-[10px] tracking-[0.3em] hover:bg-zinc-300 transition-all uppercase">
+                Initialize
+            </button>
+        </form>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            if (res.ok) window.location.href = '/dashboard';
+            else alert("ACCESS_DENIED: Invalid Key");
+        };
+    </script>
+</body>
+</html>
