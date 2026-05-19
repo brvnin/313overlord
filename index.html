@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>313 EXFILTRATOR // Advanced Auditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; cursor: crosshair; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .grid-bg { 
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        #spotlight {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+            background: radial-gradient(circle 200px at var(--x) var(--y), rgba(255,255,255,0.05), transparent 80%);
+            z-index: 9999;
+        }
+        .noir-border { border: 1px solid #1a1a1a; }
+        .btn-white { background: #fff; color: #000; transition: all 0.3s ease; font-weight: 800; }
+        .btn-white:hover { background: #ccc; transform: translateY(-2px); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .pricing-card { background: #050505; transition: all 0.3s ease; }
+        .pricing-card:hover { border-color: #fff; }
+    </style>
+</head>
+<body class="grid-bg min-h-screen">
+    <div id="spotlight"></div>
+
+    <nav class="flex justify-between items-center px-12 py-8 relative z-50">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 border border-white flex items-center justify-center font-bold mono">313</div>
+            <span class="mono text-xs tracking-tighter">EXFILTRATOR</span>
+        </div>
+        <div class="space-x-8 mono text-[10px] tracking-widest uppercase">
+            <a href="#features" class="hover:text-gray-400">Features</a>
+            <a href="#pricing" class="hover:text-gray-400">Pricing</a>
+            <a href="/login" class="px-4 py-2 border border-white hover:bg-white hover:text-black transition">Terminal Login</a>
+        </div>
+    </nav>
+
+    <header class="flex flex-col items-center justify-center text-center pt-24 pb-20 relative z-10">
+        <h1 class="text-[10rem] font-extrabold leading-none tracking-tighter mono">313</h1>
+        <p class="text-zinc-500 mono text-sm tracking-[0.6em] mb-12 uppercase">Advanced Cryptographic Exfiltration</p>
+        <a href="/login" class="btn-white px-12 py-5 text-xs tracking-[0.4em]">LAUNCH SYSTEM</a>
+    </header>
+
+    <section id="pricing" class="max-w-6xl mx-auto py-24 px-6 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Weekly -->
+            <div class="pricing-card noir-border p-8 rounded-sm">
+                <p class="mono text-[10px] text-zinc-600 mb-4 uppercase">Weekly Pass</p>
+                <h3 class="text-2xl font-bold mb-6">15€ <span class="text-xs text-zinc-700">/ $18</span></h3>
+                <ul class="text-[10px] mono text-zinc-500 space-y-2 mb-8">
+                    <li>+ Chrome v137+ Bypass</li>
+                    <li>+ All Wallets Enabled</li>
+                    <li>+ 24/7 Support</li>
+                </ul>
+                <button class="w-full py-3 border border-zinc-800 hover:border-white transition mono text-[10px]">PURCHASE</button>
+            </div>
+            <!-- Monthly -->
+            <div class="pricing-card border border-white p-8 rounded-sm scale-105">
+                <p class="mono text-[10px] text-white mb-4 uppercase">Monthly Access</p>
+                <h3 class="text-2xl font-bold mb-6">50€ <span class="text-xs text-zinc-700">/ $55</span></h3>
+                <ul class="text-[10px] mono text-zinc-400 space-y-2 mb-8">
+                    <li>+ Remote C2 Command</li>
+                    <li>+ Hidden Persistence</li>
+                    <li>+ Daily Updates</li>
+                </ul>
+                <button class="w-full py-3 btn-white mono text-[10px]">PURCHASE</button>
+            </div>
+            <!-- Quarterly -->
+            <div class="pricing-card noir-border p-8 rounded-sm">
+                <p class="mono text-[10px] text-zinc-600 mb-4 uppercase">Quarterly</p>
+                <h3 class="text-2xl font-bold mb-6">120€ <span class="text-xs text-zinc-700">/ $130</span></h3>
+                <ul class="text-[10px] mono text-zinc-500 space-y-2 mb-8">
+                    <li>+ Priority Builds</li>
+                    <li>+ Private Stub Overlay</li>
+                    <li>+ Advanced Anti-VM</li>
+                </ul>
+                <button class="w-full py-3 border border-zinc-800 hover:border-white transition mono text-[10px]">PURCHASE</button>
+            </div>
+            <!-- Lifetime -->
+            <div class="pricing-card noir-border p-8 rounded-sm">
+                <p class="mono text-[10px] text-zinc-600 mb-4 uppercase">Lifetime</p>
+                <h3 class="text-2xl font-bold mb-6">350€ <span class="text-xs text-zinc-700">/ $400</span></h3>
+                <ul class="text-[10px] mono text-zinc-500 space-y-2 mb-8">
+                    <li>+ Eternal Access</li>
+                    <li>+ Master Node Control</li>
+                    <li>+ Custom Request Feature</li>
+                </ul>
+                <button class="w-full py-3 border border-zinc-800 hover:border-white transition mono text-[10px]">PURCHASE</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        lucide.createIcons();
+        document.addEventListener('mousemove', (e) => {
+            document.documentElement.style.setProperty('--x', e.clientX + 'px');
+            document.documentElement.style.setProperty('--y', e.clientY + 'px');
+        });
+    </script>
+</body>
+</html>
